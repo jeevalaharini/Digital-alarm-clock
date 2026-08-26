@@ -1,0 +1,90 @@
+`timescale 1s/1ms
+
+module digital_alarm_clock_tb;
+
+    reg clk;
+    reg reset;
+
+    reg alarm_enable;
+    reg [4:0] alarm_hour;
+    reg [5:0] alarm_minute;
+
+    wire [4:0] hour;
+    wire [5:0] minute;
+    wire [5:0] second;
+    wire alarm;
+
+
+    // Instantiate design
+    digital_alarm_clock #(
+        .CLK_FREQ(2)
+    ) DUT (
+        .clk(clk),
+        .reset(reset),
+
+        .alarm_enable(alarm_enable),
+        .alarm_hour(alarm_hour),
+        .alarm_minute(alarm_minute),
+
+        .hour(hour),
+        .minute(minute),
+        .second(second),
+
+        .alarm(alarm)
+    );
+
+
+    // Clock generation
+    initial begin
+        clk = 0;
+
+        forever #0.5 clk = ~clk;
+    end
+
+
+    // Test sequence
+    initial begin
+
+        // Initial values
+        reset = 1;
+
+        alarm_enable = 1;
+        alarm_hour = 0;
+        alarm_minute = 1;
+
+        #2;
+
+        // Release reset
+        reset = 0;
+
+        // Run simulation
+        #130;
+
+        $finish;
+
+    end
+
+
+    // Display values
+    initial begin
+
+        $monitor(
+            "Time = %02d:%02d:%02d | Alarm = %b",
+            hour,
+            minute,
+            second,
+            alarm
+        );
+
+    end
+
+
+    // Generate waveform
+    initial begin
+
+        $dumpfile("alarm_clock.vcd");
+        $dumpvars(0, digital_alarm_clock_tb);
+
+    end
+
+endmodule

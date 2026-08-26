@@ -1,0 +1,81 @@
+module digital_alarm_clock #(
+    parameter CLK_FREQ = 10
+)(
+    input  wire       clk,
+    input  wire       reset,
+
+    input  wire       alarm_enable,
+    input  wire [4:0] alarm_hour,
+    input  wire [5:0] alarm_minute,
+
+    output reg  [4:0] hour,
+    output reg  [5:0] minute,
+    output reg  [5:0] second,
+
+    output reg        alarm
+);
+
+    reg [31:0] counter;
+
+    always @(posedge clk or posedge reset) begin
+
+        if (reset) begin
+            counter <= 0;
+            hour    <= 0;
+            minute  <= 0;
+            second  <= 0;
+            alarm   <= 0;
+        end
+
+        else begin
+
+            // Generate 1-second tick
+            if (counter == CLK_FREQ - 1) begin
+
+                counter <= 0;
+
+                // Seconds
+                if (second == 59) begin
+                    second <= 0;
+
+                    // Minutes
+                    if (minute == 59) begin
+                        minute <= 0;
+
+                        // Hours
+                        if (hour == 23)
+                            hour <= 0;
+                        else
+                            hour <= hour + 1;
+
+                    end
+                    else begin
+                        minute <= minute + 1;
+                    end
+
+                end
+                else begin
+                    second <= second + 1;
+                end
+
+            end
+            else begin
+                counter <= counter + 1;
+            end
+
+
+            // Alarm condition
+            if (alarm_enable &&
+                hour == alarm_hour &&
+                minute == alarm_minute &&
+                second == 0)
+
+                alarm <= 1;
+
+            else
+                alarm <= 0;
+
+        end
+    end
+
+endmodule
